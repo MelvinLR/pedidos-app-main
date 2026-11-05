@@ -92,8 +92,11 @@ import {
 } from '@ionic/vue';
 import ExploreContainer from '@/components/ExploreContainer.vue';
 import { reactive, ref, onMounted, onUnmounted } from 'vue';
-import * as BarcodeScannerPkg from '@capacitor/barcode-scanner';
-const { BarcodeScanner } = BarcodeScannerPkg;
+import { Capacitor } from '@capacitor/core';
+import { 
+  CapacitorBarcodeScanner, 
+  CapacitorBarcodeScannerTypeHint 
+} from '@capacitor/barcode-scanner';
 
 interface PostForm {
   title: string;
@@ -133,45 +136,37 @@ onUnmounted(() => {
 });
 
 const escanearQR = async () => {
-  try {
-    const status = await BarcodeScanner.checkPermission({ force: true });
-    
-    if (!status.granted) {
-      alert('Se requiere permiso de cámara para escanear.');
-      return;
-    }
-
-    isScanning.value = true;
-    await BarcodeScanner.hideBackground();
-    document.body.classList.add('scanner-active');
-
-   const result = await BarcodeScanner.startScan();
-  
-   detenerEscaneo();
-
-// Agregamos la verificación '&& result.content' para que TypeScript sepa que NO es undefined
-if (result.hasContent && result.content) {
-  try {
-    const datosQR = JSON.parse(result.content);
-
-    if (datosQR.title) postData.title = datosQR.title;
-    if (datosQR.body) postData.body = datosQR.body;
-    if (datosQR.userId) postData.userId = Number(datosQR.userId);
-  } catch {
-    postData.title = result.content;
+  // 1. Validar ejecución en plataforma nativa
+  if (!Capacitor.isNativePlatform()) {
+    alert('El escáner de cámara solo funciona en un dispositivo móvil.');
+    return;
   }
-}
+
+  try {
+    // 2. Disparar el escáner nativo
+    const result = await CapacitorBarcodeScanner.scanBarcode({
+      hint: CapacitorBarcodeScannerTypeHint.ALL,
+    });
+
+    // 3. Rellenar los campos si se obtuvo un resultado
+    if (result && result.ScanResult) {
+      try {
+        const datosQR = JSON.parse(result.ScanResult);
+        if (datosQR.title) postData.title = datosQR.title;
+        if (datosQR.body) postData.body = datosQR.body;
+        if (datosQR.userId) postData.userId = Number(datosQR.userId);
+      } catch {
+        postData.title = result.ScanResult;
+      }
+    }
   } catch (error) {
     console.error('Error al escanear QR:', error);
-    if (isScanning.value) {
-      await detenerEscaneo();
-    }
   }
 };
 
 const detenerEscaneo = async () => {
-  await BarcodeScanner.showBackground();
-  await BarcodeScanner.stopScan();
+  await CapacitorBarcodeScanner.showBackground();
+  await CapacitorBarcodeScanner.stopScan();
   document.body.classList.remove('scanner-active');
   isScanning.value = false;
 };

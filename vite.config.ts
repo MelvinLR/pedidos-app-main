@@ -14,9 +14,6 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
-  optimizeDeps: {
-    exclude: ['@capacitor/barcode-scanner']
-  },
   test: {
     globals: true,
     environment: 'jsdom',
