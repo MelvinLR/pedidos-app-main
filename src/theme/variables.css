@@ -1,0 +1,22 @@
+/* For information on how to create your own theme, please refer to:
+http://ionicframework.com/docs/theming/ */
+
+body.scanner-active {
+  --background: transparent !important;
+  --ion-background-color: transparent !important;
+  background: transparent !important;
+}
+
+body.scanner-active ion-content {
+  --background: transparent !important;
+}
+
+.scanner-controls {
+  position: fixed;
+  bottom: 40px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  z-index: 999;
+}
