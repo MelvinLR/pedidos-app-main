@@ -67,7 +67,8 @@ import {
 } from '@ionic/vue';
 import { Order } from '@/interfaces/ordert';
 
-const API_BASE_URL = 'https://ds4-demo-5w8lmtds.on-forge.com';
+// Apunta al proxy configurado en vite.config.ts
+const API_BASE_URL = '/api-forge';
 
 const token = ref<string | null>(localStorage.getItem('auth_token'));
 const email = ref('');
@@ -75,16 +76,17 @@ const password = ref('');
 const cargando = ref(false);
 const ordenes = ref<Order[]>([]);
 
-// Login consumiendo /sanctum/token
+// Login consumiendo /sanctum/token a través del proxy
 async function hacerLogin() {
   if (!email.value || !password.value) {
-    alert('Ingresa correo y contraseña');
+    alert('Por favor ingresa tu correo y contraseña.');
     return;
   }
 
   cargando.value = true;
   try {
-    const res = await fetch(`${API_BASE_URL}/sanctum/token`, {
+    // 💡 CAMBIO AQUÍ: Se añade /api/ antes de sanctum/token
+    const res = await fetch(`${API_BASE_URL}/api/sanctum/token`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -102,7 +104,7 @@ async function hacerLogin() {
       throw new Error(data.message || 'Credenciales inválidas');
     }
 
-    // Guardar token obtenido de Sanctum
+    // Guardar token recuperado
     const authToken = data.token || data.access_token;
     localStorage.setItem('auth_token', authToken);
     token.value = authToken;

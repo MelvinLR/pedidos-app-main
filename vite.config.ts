@@ -17,7 +17,16 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
-    // Playwright e2e specs live in tests/e2e.
     include: ['tests/unit/**/*.spec.{js,ts}'],
+  },
+  server: {
+    proxy: {
+      '/api-forge': {
+        target: 'https://ds4-demo-5w8lmtds.on-forge.com',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (p) => p.replace(/^\/api-forge/, ''),
+      },
+    },
   },
 });
